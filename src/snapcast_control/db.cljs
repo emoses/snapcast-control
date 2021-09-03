@@ -1,4 +1,10 @@
 (ns snapcast-control.db)
 
 (def default-db
-  {:name "re-frame"})
+  {:connection {
+                :url "ws://home.booty.coopermoses.com:1780"
+                :status :disconnected
+                }
+   :groups {}
+   :clients {}
+   :streams {}})
