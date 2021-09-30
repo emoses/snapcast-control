@@ -27,24 +27,16 @@
       (assoc msg :params params)
       msg)))
 
-(defn connect [client on-open on-close on-error]
-  (ws/connect (:socket-id client) {:url (:url client)
-                                   :on-message (partial process-message client)
-                                   :on-open on-open
-                                   :on-close on-close
-                                   :on-error on-error}))
-
-(defn disconnect [client]
-  (ws/disconnect (:socket-id client)))
-
 (defn notification? [msg]
   (let [method (:method msg)]
     (and method
       (let [vals (s/split method #"\.")]
-        (->
-         vals
-         (nth 1)
-         (s/starts-with? "On"))))))
+        (if (>= (count vals) 2)
+          (->
+           vals
+           (nth 1)
+           (s/starts-with? "On"))
+          false)))))
 
 (defn handle-response [client msg]
   (let [id (:id msg)]
@@ -61,18 +53,32 @@
 (defn process-message [client msg-event]
   (let [msg (event->msg msg-event)]
     (if (notification? msg)
-      (when-let [f (:notification-handler client)]
-        (f msg))
+      (do
+        (when-let [f (:notification-handler client)]
+          (f msg)))
       (handle-response client msg))))
 
-(defn send-msg [client msg callback]
-  (let [id (:id msg)
-        m {:method (:method msg)
-           :timestamp (.now js/Date)
-           :callback callback}]
-    (swap! (:in-flight client) assoc id m))
+(defn- send [client msg callback]
   (ws/send (:socket-id client) msg))
 
-(defn server-get-status [client done]
-  (let [req (new-msg client "Server.GetStatus")]
-    (send-msg client req done)))
+(defn send-msg
+  ([client method callback]
+   (send-msg client method {} callback))
+  ([client method params callback]
+   (let [msg (new-msg client method)
+         id (:id msg)
+         m {:method method
+            :timestamp (.now js/Date)
+            :callback callback}]
+     (swap! (:in-flight client) assoc id m)
+     (send client msg callback))))
+
+(defn connect [client on-open on-close on-error]
+  (ws/connect (:socket-id client) {:url (:url client)
+                                   :on-message (partial process-message client)
+                                   :on-open on-open
+                                   :on-close on-close
+                                   :on-error on-error}))
+
+(defn disconnect [client]
+  (ws/disconnect (:socket-id client)))
