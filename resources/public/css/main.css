@@ -1,0 +1,26 @@
+body {
+    background-color: #EEEEEE;
+    font-size: 0.8em;
+}
+
+dd, dl, h1, h2, h3, h4, h5, h6 {
+    margin: 0;
+}
+
+.client {
+    border: 1px dotted black;
+    padding: 4px 8px;
+}
+
+.client dl {
+    display: flex;
+}
+
+.client dl dt {
+    font-weight: bold;
+    padding-right: 8px;
+}
+
+.client dl dd + dt {
+    margin-left: 10px;
+}

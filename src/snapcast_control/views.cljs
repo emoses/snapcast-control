@@ -55,14 +55,39 @@
 
 (defn clients []
   (let [clients @(re-frame/subscribe [::subs/clients])]
-    [:div
-     [:h2 "Clients"
-      (when-not (empty? clients)
-        (map client (vals clients)))]]))
+    [:div.clients
+     [:h2 "Clients"]
+     (when-not (empty? clients)
+       (map client (vals clients)))]))
+
+(defn client-name [client-id]
+  (let [name @(re-frame/subscribe [::subs/client-name client-id])]
+    [:span.client-name (or name client-id)]))
+
+(defn group [group-data]
+  [:div.group {:key (:id group-data)}
+   [:h3 (or (:name group-data) [:span.no-name "No name"])]
+   [:div.group-clients
+    [:h4 "Clients"]
+    (if (empty? (:clients group-data))
+      "None"
+      (map (fn [id] [:div {:key id} (client-name id)]) (:clients group-data)))]
+   [:dl
+    [:dt "Id"] [:dd (:id group-data)]
+    [:dt "Muted?"] [:dd (:muted group-data)]
+    [:dt "Stream playing"] (:stream-id group-data)]])
+
+(defn groups []
+  (let [groups @(re-frame/subscribe [::subs/groups])]
+    [:div.groups
+     [:h2 "Groups"]
+     (when-not (empty? groups)
+       (map group (vals groups)))]))
 
 (defn main-panel []
   [:div
    [:div.connection (connection-input) (connect-button)]
    (refresh-button)
+   [groups]
    (clients)
    ])

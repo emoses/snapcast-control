@@ -13,6 +13,11 @@
    (:clients db)))
 
 (re-frame/reg-sub
+ ::groups
+ (fn [db]
+   (:groups db)))
+
+(re-frame/reg-sub
  ::connection-url
  (fn [db]
    (get-in db [:connection :url])))
@@ -21,3 +26,9 @@
  ::connection-state
  (fn [db]
    (get-in db [:connection :status])))
+
+(re-frame/reg-sub
+ ::client-name
+ :<- [::clients]
+ (fn [clients [_ client-id]]
+   (get-in clients [client-id :config :name])))

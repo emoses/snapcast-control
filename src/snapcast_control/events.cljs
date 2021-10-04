@@ -67,15 +67,24 @@
      (do (prn "Recieved unhandled notification" (:method msg)) {}))))
 
 (defn extract-clients [groups]
-  (reduce (fn [m c] (assoc m (:id c) c)) {} (mapcat :clients groups)))
+  (mapcat :clients groups))
+
+(defn groups-client-ids-only [groups]
+  (map (fn [g]
+         (update g :clients #(mapv :id %)))
+       groups))
+
+(defn id-map [seq-with-ids]
+  (reduce (fn [m c] (assoc m (:id c) c)) {} seq-with-ids))
 
 (re-frame/reg-event-db
  ::update-server-status
  (fn [db [_ msg]]
-   (-> db
-       (assoc :groups (get-in msg [:server :groups]))
-       (assoc :clients (extract-clients (get-in msg [:server :groups])))
-       (assoc :streams (get-in msg [:server :streams])))))
+   (let [groups (get-in msg [:server :groups])]
+     (-> db
+         (assoc :groups (-> groups groups-client-ids-only id-map))
+         (assoc :clients (-> groups extract-clients id-map ))
+         (assoc :streams (get-in msg [:server :streams]))))))
 
 (re-frame/reg-event-fx
  ::refresh
