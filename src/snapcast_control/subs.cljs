@@ -1,6 +1,7 @@
 (ns snapcast-control.subs
   (:require
-   [re-frame.core :as re-frame]))
+   [re-frame.core :as re-frame]
+   [snapcast-control.util :as util]))
 
 (re-frame/reg-sub
  ::name
@@ -31,4 +32,17 @@
  ::client-name
  :<- [::clients]
  (fn [clients [_ client-id]]
-   (get-in clients [client-id :config :name])))
+   (util/client-name (clients client-id))))
+
+(re-frame/reg-sub
+ ::show-disconnected
+ (fn [db]
+   (get-in db [:view :show-disconnected])))
+
+(re-frame/reg-sub
+ ::filtered-clients
+ :<- [::clients]
+ :<- [::show-disconnected]
+ (fn [[clients show?] _]
+   (let [f (if show? (fn [c] true) (fn [c] (:connected c)))]
+     (filter f (vals clients)))))

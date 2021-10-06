@@ -12,15 +12,23 @@ dd, dl, h1, h2, h3, h4, h5, h6 {
     padding: 4px 8px;
 }
 
-.client dl {
+.props {
     display: flex;
 }
 
-.client dl dt {
+.props dt {
     font-weight: bold;
     padding-right: 8px;
 }
 
-.client dl dd + dt {
+.props dd + dt {
     margin-left: 10px;
+}
+
+.group {
+    display: flex;
+}
+
+.no-name {
+    color: #666;
 }

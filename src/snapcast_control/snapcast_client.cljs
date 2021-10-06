@@ -19,13 +19,16 @@
 (defn next-id [client]
   (swap! (:next-id client) inc))
 
-(defn new-msg [client method & params]
-  (let [msg {:id (next-id client)
-             :jsonrpc "2.0"
-             :method method}]
-    (if params
-      (assoc msg :params params)
-      msg)))
+(defn new-msg
+  ([client method]
+   (new-msg client method nil))
+  ([client method params]
+   (let [msg {:id (next-id client)
+              :jsonrpc "2.0"
+              :method method}]
+     (if-not (empty? params)
+       (assoc msg :params params)
+       msg))))
 
 (defn notification? [msg]
   (let [method (:method msg)]
@@ -52,6 +55,7 @@
 
 (defn process-message [client msg-event]
   (let [msg (event->msg msg-event)]
+    (prn "Received" msg)
     (if (notification? msg)
       (do
         (when-let [f (:notification-handler client)]
@@ -65,12 +69,13 @@
   ([client method callback]
    (send-msg client method {} callback))
   ([client method params callback]
-   (let [msg (new-msg client method)
+   (let [msg (new-msg client method params)
          id (:id msg)
          m {:method method
             :timestamp (.now js/Date)
             :callback callback}]
      (swap! (:in-flight client) assoc id m)
+     (prn "Sending: " msg)
      (send client msg callback))))
 
 (defn connect [client on-open on-close on-error]

@@ -6,6 +6,9 @@
                 :status :disconnected
                 :client nil
                 }
+   :view {
+          :show-disconnected false
+          }
    :groups {}
    :clients {}
    :streams {}})
